@@ -1,0 +1,16 @@
+# Python virtual environment (local only)
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.Python
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS / editor
+.DS_Store
+Thumbs.db
