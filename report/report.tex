@@ -15,7 +15,7 @@
 
 \title{Forecasting Monthly Median Dwelling Prices in Porto:\\
 Smoothing, Decomposition and ARIMA Methods}
-\author{Max Salomon \& Pedro Correia\\[0.4em]\small FMTS --- Time Series Forecasting\\Student numbers: \textit{[fill in]}}
+\author{Max Salomon \& Pedro Correia\\[0.4em]\small Forecasting Methods and Time Series}
 \date{May 2026}
 
 \begin{document}
@@ -255,23 +255,11 @@ Each method is refitted on the full sample and used to forecast the next 24 mont
   \item \textbf{General limitation:} all methods assume historical patterns continue; none fully captures the 2024--2026 acceleration in prices.
 \end{itemize}
 
-\section{Software and reproducibility}
-
-Analysis is implemented in R (\texttt{forecast}, \texttt{tidyverse}). The unified pipeline is \texttt{run\_analysis.R} (sources \texttt{01\_EDA.R}--\texttt{04\_comparison\_oos.R} and \texttt{R/utils.R}). Run \texttt{Rscript run\_analysis.R} from the project root; figures and tables are written to \texttt{outputs/}. The PDF is built with \texttt{make} in \texttt{report/}.
-
 \section*{References}
 \addcontentsline{toc}{section}{References}
 \begin{itemize}
   \item Hyndman, R.J., \& Athanasopoulos, G. (2021). \textit{Forecasting: Principles and Practice} (3rd ed.). OTexts.
   \item Portuguese housing price statistics (series 11A1312: Porto), \texttt{data/timeSeriesPorto.csv}.
 \end{itemize}
-
-\section*{Declaration of Authenticity}
-\addcontentsline{toc}{section}{Declaration of Authenticity}
-
-The authors declare that this work is original, that sources are properly cited, and that Generative AI tools were used to assist with code integration, LaTeX formatting, and pipeline structure. All numerical results and interpretations were verified against R output. AI systems are not listed as authors.
-
-\vspace{1.5em}
-\noindent Date: \rule{4cm}{0.4pt} \hfill Signatures: \rule{4cm}{0.4pt}
 
 \end{document}

@@ -98,9 +98,8 @@ All methods under-forecast the accelerated price growth in 2024–2026.
 
 ## Before submitting
 
-1. Fill in student numbers in `report/report.tex`
-2. Sign the declaration (`docs/declaration-of-authencity.txt`, also in the PDF)
-3. Re-run `Rscript run_analysis.R && cd report && make` to refresh outputs
+1. Sign the separate declaration document (`docs/declaration-of-authencity.txt`)
+2. Re-run `Rscript run_analysis.R && cd report && make` to refresh outputs
 
 ## Repository
 
