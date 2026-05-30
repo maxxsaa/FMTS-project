@@ -16,11 +16,14 @@ resolve_project_root <- function() {
 
 init_project <- function(csv_name = "timeSeriesPorto.csv") {
   root <- resolve_project_root()
-  csv_path <- file.path(root, csv_name)
+  csv_path <- file.path(root, "data", csv_name)
+  if (!file.exists(csv_path)) {
+    csv_path <- file.path(root, csv_name)
+  }
   if (!file.exists(csv_path)) {
     stop(
-      "Cannot find ", csv_name, " in ", root, ".\n",
-      "Place the CSV in the project root or set the working directory there.",
+      "Cannot find ", csv_name, " in data/ or project root.\n",
+      "Place the CSV in data/ or set the working directory to the project folder.",
       call. = FALSE
     )
   }

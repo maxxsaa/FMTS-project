@@ -1,5 +1,3 @@
 #!/usr/bin/env Rscript
-# Legacy entry point — delegates to the unified pipeline.
-# Prefer: Rscript run_analysis.R
-
+# Legacy entry point — use run_analysis.R instead.
 source("run_analysis.R")

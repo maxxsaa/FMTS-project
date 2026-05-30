@@ -12,8 +12,8 @@ __pycache__/
 .Rproj.user/
 Rplots.pdf
 
-# OS / editor
 .DS_Store
+**/.DS_Store
 Thumbs.db
 
 # LaTeX build artifacts

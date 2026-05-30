@@ -1,6 +1,0 @@
-
-	Box-Ljung test
-
-data:  residuals(winning_model)
-X-squared = 18.217, df = 19, p-value = 0.508
-

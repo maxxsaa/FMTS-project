@@ -1,4 +1,42 @@
-## Guidelines
+# FMTS Project — Porto Property Prices
+
+Forecasting monthly median dwelling prices in Porto using smoothing, decomposition, and ARIMA methods.
+
+**Quick start:** see [PROJECT_GUIDE.md](PROJECT_GUIDE.md) for how to run the pipeline and build the report.
+
+## Project structure
+
+```
+Project/
+├── run_analysis.R              # Run the full analysis
+├── data/
+│   └── timeSeriesPorto.csv     # Monthly price data
+├── scripts/                    # Analysis pipeline (sourced in order)
+│   ├── 01_eda.R
+│   ├── 02_decomposition_smoothing.R
+│   ├── 03_arima.R
+│   └── 04_comparison_oos.R
+├── R/
+│   └── utils.R                 # Portable paths and helpers
+├── outputs/
+│   ├── figures/                # Generated plots (22 PNG)
+│   ├── tables/                 # CSV results
+│   └── tests/                  # Model summaries, Ljung-Box
+├── report/
+│   ├── report.tex              # LaTeX source
+│   └── report.pdf              # Submission PDF (run make)
+└── docs/
+    ├── declaration-of-authencity.txt
+    ├── fep-pedagogical-report-dissertation.txt
+    ├── dataset_description.pdf
+    └── Group_08_draft.pdf      # Word draft (Pedro)
+```
+
+Repository: [github.com/maxxsaa/FMTS-project](https://github.com/maxxsaa/FMTS-project)
+
+---
+
+## Course guidelines
 
 Objectives:
 

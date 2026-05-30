@@ -1,7 +1,0 @@
-
-	Augmented Dickey-Fuller Test
-
-data:  porto_ts
-Dickey-Fuller = -1.4466, Lag order = 5, p-value = 0.8075
-alternative hypothesis: stationary
-
