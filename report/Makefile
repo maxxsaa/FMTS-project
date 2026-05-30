@@ -1,4 +1,4 @@
-.PHONY: all tables figures pdf clean
+.PHONY: all figures tables pdf clean
 
 RSCRIPT ?= Rscript
 LATEX   ?= pdflatex
@@ -6,14 +6,16 @@ LATEX   ?= pdflatex
 all: pdf
 
 figures:
-	cd .. && $(RSCRIPT) timeseries_Rscript.R
+	cd .. && $(RSCRIPT) run_analysis.R
 
-tables:
-	$(RSCRIPT) export_report_tables.R
+tables: figures
+	cp ../outputs/tables/test_accuracy_by_method.csv tables/ 2>/dev/null || true
+	cp ../outputs/tables/forecast_vs_test.csv tables/ 2>/dev/null || true
+	cp ../outputs/tables/seasonally_adjusted.csv tables/ 2>/dev/null || true
 
-pdf: tables
+pdf: figures tables
 	$(LATEX) -interaction=nonstopmode report.tex
 	$(LATEX) -interaction=nonstopmode report.tex
 
 clean:
-	rm -f report.aux report.log report.out report.toc report.pdf
+	rm -f report.aux report.log report.out report.toc

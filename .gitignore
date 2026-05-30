@@ -10,6 +10,7 @@ __pycache__/
 .Rhistory
 .RData
 .Rproj.user/
+Rplots.pdf
 
 # OS / editor
 .DS_Store
@@ -20,3 +21,4 @@ report/*.aux
 report/*.log
 report/*.out
 report/*.toc
+Rplots.pdf

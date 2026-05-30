@@ -1,0 +1,6 @@
+
+	Box-Ljung test
+
+data:  residuals(fit_arima, type = "innovation")
+X-squared = 16.799, df = 19, p-value = 0.6035
+
