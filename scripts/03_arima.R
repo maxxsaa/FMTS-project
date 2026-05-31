@@ -54,10 +54,13 @@ readr::write_csv(aic_tab, file.path(CFG$out_tab, "arima_aic_comparison.csv"))
 cat("\n=== ARIMA candidate models (log scale, d = 1) ===\n")
 print(aic_tab)
 
-fit_arima <- sarima_candidates[[aic_tab$model[1]]]
-cat("\nSelected model:", aic_tab$label[1], "\n")
+fit_arima <- forecast::Arima(train_log, order = c(1, 1, 4))
+fit_arima_314 <- forecast::Arima(train_log, order = c(3, 1, 4))
+cat("\nSelected models: ARIMA(1,1,4) and ARIMA(3,1,4)\n")
+cat("AIC — ARIMA(1,1,4):", fit_arima$aic, "| ARIMA(3,1,4):", fit_arima_314$aic, "\n")
 
 fc_arima_log <- forecast::forecast(fit_arima, h = h_test, level = 95)
+fc_arima_314_log <- forecast::forecast(fit_arima_314, h = h_test, level = 95)
 
 png(file.path(CFG$out_fig, "17_arima_residual_diagnostics.png"), width = 1000, height = 1000, res = 120)
 checkresiduals(fit_arima)
@@ -79,5 +82,11 @@ capture.output(lb_test, file = file.path(CFG$out_test, "ljung_box_arima.txt"))
 plot_exp_forecast_vs_test(
   fc_arima_log, train, test,
   paste0(arima_model_label(fit_arima), " vs test set (EUR/m²)"),
-  file.path(CFG$out_fig, "18_forecast_arima_vs_test.png")
+  file.path(CFG$out_fig, "18_forecast_arima_114_vs_test.png")
+)
+
+plot_exp_forecast_vs_test(
+  fc_arima_314_log, train, test,
+  paste0(arima_model_label(fit_arima_314), " vs test set (EUR/m²)"),
+  file.path(CFG$out_fig, "18_forecast_arima_314_vs_test.png")
 )

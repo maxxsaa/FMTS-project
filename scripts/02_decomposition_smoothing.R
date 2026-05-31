@@ -31,6 +31,9 @@ readr::write_csv(
   file.path(CFG$out_tab, "seasonally_adjusted.csv")
 )
 
+# STL phase matrices (Year × Month + volatility by phase)
+porto_stl_phase_matrices(porto_prices, porto_ts, CFG)
+
 # --- Smoothing (training sample) ----------------------------------------------
 fit_hw_mult <- HoltWinters(train, seasonal = "multiplicative")
 cat("\n=== Holt-Winters (multiplicative) ===\n")

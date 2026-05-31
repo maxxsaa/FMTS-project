@@ -1,11 +1,15 @@
 # 04 — Test-set comparison and out-of-sample forecasts
 
+exp_arima_114 <- exp_forecast(fc_arima_log)
+exp_arima_314 <- exp_forecast(fc_arima_314_log)
+
 cmp_list <- list(
   HW_Multiplicative = extract_test_metrics(fc_hw_mult, test),
   HW_Damped         = extract_test_metrics(fc_hw_damped, test),
   ETS               = extract_test_metrics(fc_ets, test),
   STLF              = extract_test_metrics(fc_stlf, test),
-  ARIMA_log         = extract_test_metrics(exp_forecast(fc_arima_log)$mean, test)
+  ARIMA_114_log     = extract_test_metrics(exp_arima_114$mean, test),
+  ARIMA_314_log     = extract_test_metrics(exp_arima_314$mean, test)
 )
 cmp <- do.call(rbind, cmp_list)
 cmp_sorted <- cmp[order(cmp[, "RMSE"]), , drop = FALSE]
@@ -25,18 +29,27 @@ test_dates <- seq.Date(
   by = "month",
   length.out = h_test
 )
-exp_arima <- exp_forecast(fc_arima_log)
 fc_vs_test <- tibble::tibble(
   month = format(test_dates, "%Y-%m"),
   actual = as.numeric(test),
   hw_mult = round(as.numeric(fc_hw_mult$mean), 1),
   hw_mult_lo95 = round(as.numeric(fc_hw_mult$lower[, 1]), 1),
   hw_mult_hi95 = round(as.numeric(fc_hw_mult$upper[, 1]), 1),
-  arima_log = round(exp_arima$mean, 1),
-  arima_lo95 = round(exp_arima$lower, 1),
-  arima_hi95 = round(exp_arima$upper, 1),
+  hw_damped = round(as.numeric(fc_hw_damped$mean), 1),
+  hw_damped_lo95 = round(as.numeric(fc_hw_damped$lower[, 1]), 1),
+  hw_damped_hi95 = round(as.numeric(fc_hw_damped$upper[, 1]), 1),
   ets = round(as.numeric(fc_ets$mean), 1),
-  stlf = round(as.numeric(fc_stlf$mean), 1)
+  ets_lo95 = round(as.numeric(fc_ets$lower[, 1]), 1),
+  ets_hi95 = round(as.numeric(fc_ets$upper[, 1]), 1),
+  stlf = round(as.numeric(fc_stlf$mean), 1),
+  stlf_lo95 = round(as.numeric(fc_stlf$lower[, 1]), 1),
+  stlf_hi95 = round(as.numeric(fc_stlf$upper[, 1]), 1),
+  arima_114 = round(exp_arima_114$mean, 1),
+  arima_114_lo95 = round(exp_arima_114$lower, 1),
+  arima_114_hi95 = round(exp_arima_114$upper, 1),
+  arima_314 = round(exp_arima_314$mean, 1),
+  arima_314_lo95 = round(exp_arima_314$lower, 1),
+  arima_314_hi95 = round(exp_arima_314$upper, 1)
 )
 readr::write_csv(fc_vs_test, file.path(CFG$out_tab, "forecast_vs_test.csv"))
 
@@ -44,30 +57,53 @@ readr::write_csv(fc_vs_test, file.path(CFG$out_tab, "forecast_vs_test.csv"))
 fit_hw_mult_full <- HoltWinters(porto_ts, seasonal = "multiplicative")
 fc_hw_mult_oos <- forecast::forecast(fit_hw_mult_full, h = H_OOS, level = 95)
 
-fit_hw_damped_oos <- forecast::hw(porto_ts, seasonal = "multiplicative", damped = TRUE, h = H_OOS, level = 95)
-fc_hw_damped_oos <- fit_hw_damped_oos
+fc_hw_damped_oos <- forecast::hw(
+  porto_ts, seasonal = "multiplicative", damped = TRUE, h = H_OOS, level = 95
+)
 
 fit_ets_full <- ets(porto_ts)
 fc_ets_oos <- forecast::forecast(fit_ets_full, h = H_OOS, level = 95)
 fc_stlf_oos <- forecast::stlf(porto_ts, h = H_OOS, level = 95)
 
-fit_arima_full <- forecast::Arima(log(porto_ts), model = fit_arima)
-fc_arima_log_oos <- forecast::forecast(fit_arima_full, h = H_OOS, level = 95)
-exp_oos_arima <- exp_forecast(fc_arima_log_oos)
+porto_log_full <- log(porto_ts)
+fit_arima_114_full <- forecast::Arima(porto_log_full, order = c(1, 1, 4))
+fit_arima_314_full <- forecast::Arima(porto_log_full, order = c(3, 1, 4))
+fc_arima_114_oos <- forecast::forecast(fit_arima_114_full, h = H_OOS, level = 95)
+fc_arima_314_oos <- forecast::forecast(fit_arima_314_full, h = H_OOS, level = 95)
+exp_oos_arima_114 <- exp_forecast(fc_arima_114_oos)
+exp_oos_arima_314 <- exp_forecast(fc_arima_314_oos)
 
-plot_forecast_vs_test(fc_hw_mult_oos, window(porto_ts, start = time(porto_ts)[1]),
+plot_forecast_oos(
+  fc_hw_mult_oos,
   "Holt-Winters (multiplicative) — out-of-sample",
-  file.path(CFG$out_fig, "19_oos_hw_mult.png"))
-
-plot_forecast_vs_test(fc_ets_oos, window(porto_ts, start = time(porto_ts)[1]),
+  file.path(CFG$out_fig, "19_oos_hw_mult.png")
+)
+plot_forecast_oos(
+  fc_hw_damped_oos,
+  "Holt-Winters (multiplicative, damped) — out-of-sample",
+  file.path(CFG$out_fig, "20_oos_hw_damped.png")
+)
+plot_forecast_oos(
+  fc_ets_oos,
   paste0("ETS (", fit_ets_full$method, ") — out-of-sample"),
-  file.path(CFG$out_fig, "20_oos_ets.png"))
-
-plot_forecast_vs_test(fc_stlf_oos, window(porto_ts, start = time(porto_ts)[1]),
+  file.path(CFG$out_fig, "21_oos_ets.png")
+)
+plot_forecast_oos(
+  fc_stlf_oos,
   "STLF — out-of-sample",
-  file.path(CFG$out_fig, "21_oos_stlf.png"))
+  file.path(CFG$out_fig, "22_oos_stlf.png")
+)
+plot_exp_forecast_oos(
+  fc_arima_114_oos, porto_ts,
+  "ARIMA(1,1,4) — out-of-sample (EUR/m²)",
+  file.path(CFG$out_fig, "23_oos_arima_114.png")
+)
+plot_exp_forecast_oos(
+  fc_arima_314_oos, porto_ts,
+  "ARIMA(3,1,4) — out-of-sample (EUR/m²)",
+  file.path(CFG$out_fig, "24_oos_arima_314.png")
+)
 
-# ARIMA OOS in EUR
 last_date <- max(porto_prices$date)
 oos_dates <- seq.Date(last_date, by = "month", length.out = H_OOS + 1L)[-1L]
 oos_tbl <- tibble::tibble(
@@ -84,22 +120,14 @@ oos_tbl <- tibble::tibble(
   stlf_point = as.numeric(fc_stlf_oos$mean),
   stlf_lo95 = as.numeric(fc_stlf_oos$lower[, 1]),
   stlf_hi95 = as.numeric(fc_stlf_oos$upper[, 1]),
-  arima_point = exp_oos_arima$mean,
-  arima_lo95 = exp_oos_arima$lower,
-  arima_hi95 = exp_oos_arima$upper
+  arima_114_point = exp_oos_arima_114$mean,
+  arima_114_lo95 = exp_oos_arima_114$lower,
+  arima_114_hi95 = exp_oos_arima_114$upper,
+  arima_314_point = exp_oos_arima_314$mean,
+  arima_314_lo95 = exp_oos_arima_314$lower,
+  arima_314_hi95 = exp_oos_arima_314$upper
 )
 readr::write_csv(oos_tbl, file.path(CFG$out_tab, "out_of_sample_forecasts_95.csv"))
-
-grDevices::png(file.path(CFG$out_fig, "22_oos_arima_log.png"), width = 900, height = 500, res = 120)
-plot(porto_ts, main = paste0(arima_model_label(fit_arima_full), " — out-of-sample (EUR/m²)"),
-     ylab = "EUR per m²", xlim = c(start(porto_ts)[1], max(time(porto_ts)) + H_OOS / 12))
-t_oos <- seq(max(time(porto_ts)) + 1 / 12, by = 1 / 12, length.out = H_OOS)
-lines(t_oos, exp_oos_arima$mean, col = "blue", lwd = 2)
-polygon(c(t_oos, rev(t_oos)), c(exp_oos_arima$lower, rev(exp_oos_arima$upper)),
-        col = rgb(0.3, 0.5, 0.9, 0.25), border = NA)
-legend("topleft", legend = c("Forecast", "95% PI"), col = c("blue", "lightblue"),
-       lty = 1, lwd = c(2, 6), bty = "n")
-dev.off()
 
 cat("\n=== Pipeline complete ===\n")
 cat("Figures:", CFG$out_fig, "\n")

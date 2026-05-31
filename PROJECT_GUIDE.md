@@ -43,8 +43,8 @@ Project/
 ├── R/
 │   └── utils.R                 # Paths, train/test split, helpers
 ├── outputs/
-│   ├── figures/                # 01–22 numbered PNG figures
-│   ├── tables/                 # CSV results
+│   ├── figures/                # 01–23 numbered PNG figures
+│   ├── tables/                 # CSV results (incl. STL phase matrices)
 │   └── tests/                  # Text summaries (HW, ETS, Ljung-Box)
 ├── report/
 │   ├── report.tex
@@ -68,6 +68,7 @@ Explores trend, seasonality, and autocorrelation. Produces figures `01`–`04`.
 - Classical multiplicative decomposition
 - STL on log prices
 - Seasonally adjusted series → `outputs/tables/seasonally_adjusted.csv`
+- STL phase matrices (Year × Month + volatility by phase) → `outputs/figures/23_stl_phase_matrices.png`
 - Holt-Winters (multiplicative + damped), ETS, STLF fitted on training data
 - Figures `05`–`12`
 
