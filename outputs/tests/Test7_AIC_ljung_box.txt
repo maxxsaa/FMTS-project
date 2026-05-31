@@ -1,0 +1,6 @@
+
+	Box-Ljung test
+
+data:  residuals(model_obj)
+X-squared = 9.9401, df = 17, p-value = 0.9061
+

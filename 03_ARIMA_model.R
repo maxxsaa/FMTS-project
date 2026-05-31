@@ -83,24 +83,90 @@ write.csv(model_comparison, file.path(out_tab, "Tab2_aic_bic_comparison.csv"), r
 # Proceeding with Candidate A for diagnostics
 winning_model <- cand_A_arima
 
-# 5. Diagnostic Checking
-png(file.path(out_fig, "Fig20_arima_residuals.png"), width = 800, height = 800)
-checkresiduals(winning_model)
-dev.off()
+# ==============================================================================
+# 4. Model Selection: Main Benchmarks vs. Annex Sensitivity Analysis
+# ==============================================================================
 
-df_sarima <- length(winning_model$coef)
-lb_test <- Box.test(residuals(winning_model), type = "Ljung-Box", lag = 24, fitdf = df_sarima)
-capture.output(lb_test, file = file.path(out_test, "Test7_ljung_box.txt"))
+# 1. Main Benchmarks (Automated + Your Initial Manual Choice)
+main_models <- list(
+  "Benchmark: Auto-ARIMA" = auto.arima(train_log, d = 1, seasonal = FALSE, stepwise = FALSE, approximation = FALSE),
+  "Benchmark: Auto-SARIMA" = auto.arima(train_log, d = 1, seasonal = TRUE, stepwise = FALSE, approximation = FALSE),
+  "Manual Choice: SARIMA(3,1,0)(0,0,1)[12]" = Arima(train_log, order = c(3, 1, 0), seasonal = list(order = c(0, 0, 1), period = 12)),
+  "Manual Choice: ARIMA(3,1,4)" = Arima(train_log, order = c(3, 1, 4))
+)
 
-# 6. Predictive Performance on Test Set
-forecast_test <- forecast(winning_model, h = h_test)
-exp_point_forecasts <- exp(forecast_test$mean)
-accuracy_test <- test_accuracy_row(exp_point_forecasts, porto_ts_test)
+# 2. Annex Sensitivity Analysis (The "Exploration" models)
+annex_models <- list(
+  "Annex: ARIMA(1,1,3)" = Arima(train_log, order = c(1, 1, 3)),
+  "Annex: ARIMA(2,1,4)" = Arima(train_log, order = c(2, 1, 4)),
+  "Annex: ARIMA(0,1,4)" = Arima(train_log, order = c(0, 1, 4)),
+  "Annex: SARIMA(1,1,4)(0,0,1)[12]" = Arima(train_log, order = c(1, 1, 4), seasonal = list(order = c(0, 0, 1), period = 12)),
+  "Annex: ARIMA(3,1,0)" = Arima(train_log, order = c(3, 1, 0)),
+  "Annex: SARIMA(2,1,0)(0,0,1)[12]" = Arima(train_log, order = c(2, 1, 0), seasonal = list(order = c(0, 0, 1), period = 12)),
+  "Annex: SARIMA(3,1,1)(0,0,1)[12]" = Arima(train_log, order = c(3, 1, 1), seasonal = list(order = c(0, 0, 1), period = 12))
+)
 
-write.csv(round(accuracy_test, 4), file.path(out_tab, "Tab3_arima_test_accuracy.csv"), row.names = TRUE)
+# 3. Combine for comprehensive comparison
+all_models <- c(main_models, annex_models)
 
-png(file.path(out_fig, "Fig21_forecast_vs_actual.png"), width = 800, height = 600)
-plot(forecast_test, main = "Out-of-Sample Performance: ARIMA vs Actuals", ylab = "log(EUR per sqm)", xlab = "Time")
-lines(log(porto_ts_test), col = "red", lwd = 2)
-legend("topleft", legend = c("Forecast", "Actuals (Test Set)"), col = c("blue", "red"), lty = 1, lwd = 2)
-dev.off()
+# 4. Create and save the table
+model_comparison <- data.frame(
+  Model = names(all_models),
+  AIC = sapply(all_models, function(m) m$aic),
+  BIC = sapply(all_models, function(m) m$bic)
+)
+
+# Sort by AIC
+model_comparison_sorted <- model_comparison[order(model_comparison$AIC), ]
+write.csv(model_comparison_sorted, file.path(out_tab, "Tab2_aic_bic_comparison_full.csv"), row.names = FALSE)
+
+# 5. Selection Logic: Choose model with best BIC for final diagnostics
+bic_values <- sapply(all_models, function(m) m$bic)
+winning_model_name <- names(which.min(bic_values))
+winning_model <- all_models[[winning_model_name]]
+
+cat("Diagnostic tests performed on:", winning_model_name, 
+    "(selected for superior BIC/parsimony).\n")
+
+# ==============================================================================
+# 5 & 6. Diagnostic Checking & Predictive Performance (BIC vs. AIC)
+# ==============================================================================
+
+# 1. Identify the two winners
+bic_winner_name <- names(which.min(sapply(all_models, function(m) m$bic)))
+aic_winner_name <- names(which.min(sapply(all_models, function(m) m$aic)))
+
+winners <- list(BIC = all_models[[bic_winner_name]], AIC = all_models[[aic_winner_name]])
+winner_names <- list(BIC = bic_winner_name, AIC = aic_winner_name)
+
+# 2. Loop through both models to generate diagnostics and accuracy tables
+for (w in names(winners)) {
+  model_obj <- winners[[w]]
+  model_name <- winner_names[[w]]
+  
+  # Diagnostic Checking
+  png(file.path(out_fig, paste0("Fig20_", w, "_residuals.png")), width = 800, height = 800)
+  checkresiduals(model_obj, main = paste("Residuals:", w, "-Winner"))
+  dev.off()
+  
+  df_model <- length(model_obj$coef)
+  lb_test <- Box.test(residuals(model_obj), type = "Ljung-Box", lag = 24, fitdf = df_model)
+  capture.output(lb_test, file = file.path(out_test, paste0("Test7_", w, "_ljung_box.txt")))
+  
+  # Predictive Performance
+  forecast_test <- forecast(model_obj, h = h_test)
+  # Remember: we are working with log-transformed data, so we exponentiate
+  exp_point_forecasts <- exp(forecast_test$mean)
+  accuracy_test <- test_accuracy_row(exp_point_forecasts, porto_ts_test)
+  
+  write.csv(round(accuracy_test, 4), file.path(out_tab, paste0("Tab3_", w, "_test_accuracy.csv")), row.names = TRUE)
+  
+  # Plot Forecast vs Actual
+  png(file.path(out_fig, paste0("Fig21_forecast_", w, ".png")), width = 800, height = 600)
+  plot(forecast_test, main = paste("Out-of-Sample:", w, "-Winner"), ylab = "log(EUR per sqm)", xlab = "Time")
+  lines(log(porto_ts_test), col = "red", lwd = 2)
+  legend("topleft", legend = c("Forecast", "Actuals (Test Set)"), col = c("blue", "red"), lty = 1, lwd = 2)
+  dev.off()
+  
+  cat("Completed diagnostics and forecast for:", model_name, "(", w, " Winner)\n")
+}
